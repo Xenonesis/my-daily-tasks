@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { TaskCard } from '@/components/TaskCard';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
 import { TaskFilters } from '@/components/TaskFilters';
 import { TaskStats } from '@/components/TaskStats';
@@ -50,10 +51,11 @@ export default function Dashboard() {
             <span className="text-xl font-semibold text-foreground">TaskFlow</span>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <span className="text-sm text-muted-foreground hidden sm:block">
               {user?.email}
             </span>
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="sm"
