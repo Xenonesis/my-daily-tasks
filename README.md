@@ -1,73 +1,123 @@
-# Welcome to your Lovable project
+# My Daily Tasks
 
-## Project info
+A modern, responsive task management application built with React, TypeScript, and Supabase. Manage your daily tasks with ease, featuring user authentication, task creation, editing, filtering, and statistics.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- **User Authentication**: Secure login and signup using Supabase Auth
+- **Task Management**: Create, edit, delete, and mark tasks as complete
+- **Task Filtering**: Filter tasks by status (completed/incomplete)
+- **Task Statistics**: View task completion stats and progress
+- **Dark/Light Theme**: Toggle between themes for better user experience
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Library**: shadcn/ui with Radix UI components
+- **Styling**: Tailwind CSS
+- **Backend**: Supabase (PostgreSQL database, Authentication, Real-time)
+- **State Management**: React Query (TanStack Query)
+- **Routing**: React Router DOM
+- **Icons**: Lucide React
+- **Forms**: React Hook Form with Zod validation
+- **Animations**: Framer Motion
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js (v18 or higher) or Bun
+- A Supabase account and project
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Xenonesis/my-daily-tasks.git
+   cd my-daily-tasks
+   ```
 
-Follow these steps:
+2. **Install dependencies**
+   ```bash
+   npm install
+   # or
+   bun install
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. **Set up Supabase**
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Run the database migration:
+     ```bash
+     supabase db push
+     ```
+     Or apply the migration manually from `supabase/migrations/20260109035056_719b7e03-e412-49d4-b2d1-5c1bc30fbfad.sql`
 
-# Step 3: Install the necessary dependencies.
-npm i
+4. **Environment Variables**
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+   Create a `.env` file in the root directory and add your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+   ```
+
+5. **Run the development server**
+   ```bash
+   npm run dev
+   # or
+   bun run dev
+   ```
+
+   Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+## Available Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build the project for production
+- `npm run preview` - Preview the production build locally
+- `npm run lint` - Run ESLint for code linting
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   └── ...             # Custom components (TaskCard, etc.)
+├── contexts/           # React contexts (AuthContext)
+├── hooks/              # Custom hooks (useTasks, etc.)
+├── integrations/       # External integrations (Supabase)
+├── lib/                # Utility functions
+├── pages/              # Page components (Dashboard, Auth, etc.)
+└── ...
 ```
 
-**Edit a file directly in GitHub**
+## Deployment
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+This app can be deployed to any static hosting service like Vercel, Netlify, or GitHub Pages.
 
-**Use GitHub Codespaces**
+1. Build the project:
+   ```bash
+   npm run build
+   ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. Deploy the `dist` folder to your hosting provider.
 
-## What technologies are used for this project?
+For Vercel:
+```bash
+npm i -g vercel
+vercel
+```
 
-This project is built with:
+## Contributing
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## How can I deploy this project?
+## License
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This project is licensed under the MIT License.
