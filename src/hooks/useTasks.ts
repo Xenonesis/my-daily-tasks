@@ -17,16 +17,29 @@ export interface Task {
   user_id: string;
 }
 
+export type SortField = 'created_at' | 'due_date' | 'priority';
+export type SortDirection = 'asc' | 'desc';
+
 interface UseTasksOptions {
   searchQuery?: string;
   statusFilter?: 'all' | 'completed' | 'incomplete';
   priorityFilter?: 'all' | Priority;
+  sortField?: SortField;
+  sortDirection?: SortDirection;
   page?: number;
   limit?: number;
 }
 
 export function useTasks(options: UseTasksOptions = {}) {
-  const { searchQuery = '', statusFilter = 'all', priorityFilter = 'all', page = 1, limit = 20 } = options;
+  const { 
+    searchQuery = '', 
+    statusFilter = 'all', 
+    priorityFilter = 'all', 
+    sortField = 'created_at',
+    sortDirection = 'desc',
+    page = 1, 
+    limit = 20 
+  } = options;
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -45,8 +58,19 @@ export function useTasks(options: UseTasksOptions = {}) {
     let query = supabase
       .from('tasks')
       .select('*', { count: 'exact' })
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .eq('user_id', user.id);
+
+    // Apply sorting based on field type
+    if (sortField === 'priority') {
+      // For priority, we need to order by a custom logic: high > medium > low
+      // Since Supabase doesn't support custom order, we'll sort client-side after fetch
+      query = query.order('created_at', { ascending: sortDirection === 'asc' });
+    } else if (sortField === 'due_date') {
+      // Put null due dates at the end when sorting ascending, at the start when descending
+      query = query.order('due_date', { ascending: sortDirection === 'asc', nullsFirst: sortDirection === 'desc' });
+    } else {
+      query = query.order('created_at', { ascending: sortDirection === 'asc' });
+    }
 
     // Apply status filter
     if (statusFilter !== 'all') {
@@ -77,12 +101,24 @@ export function useTasks(options: UseTasksOptions = {}) {
         variant: 'destructive',
       });
     } else {
-      setTasks((data as Task[]) || []);
+      let sortedData = (data as Task[]) || [];
+      
+      // Client-side priority sorting if needed
+      if (sortField === 'priority') {
+        const priorityOrder: Record<Priority, number> = { high: 0, medium: 1, low: 2 };
+        sortedData = sortedData.sort((a, b) => {
+          const orderA = priorityOrder[a.priority] ?? 1;
+          const orderB = priorityOrder[b.priority] ?? 1;
+          return sortDirection === 'asc' ? orderB - orderA : orderA - orderB;
+        });
+      }
+      
+      setTasks(sortedData);
       setTotalCount(count || 0);
     }
     
     setLoading(false);
-  }, [user, searchQuery, statusFilter, priorityFilter, page, limit, toast]);
+  }, [user, searchQuery, statusFilter, priorityFilter, sortField, sortDirection, page, limit, toast]);
 
   useEffect(() => {
     fetchTasks();
