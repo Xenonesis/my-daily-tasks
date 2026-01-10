@@ -12,6 +12,7 @@ export interface Task {
   status: 'completed' | 'incomplete';
   priority: Priority;
   due_date: string | null;
+  tags: string[];
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -124,7 +125,7 @@ export function useTasks(options: UseTasksOptions = {}) {
     fetchTasks();
   }, [fetchTasks]);
 
-  const createTask = async (title: string, description?: string, priority: Priority = 'medium', dueDate?: string) => {
+  const createTask = async (title: string, description?: string, priority: Priority = 'medium', dueDate?: string, tags: string[] = []) => {
     if (!user) return { error: new Error('Not authenticated') };
 
     const { data, error } = await supabase
@@ -136,6 +137,7 @@ export function useTasks(options: UseTasksOptions = {}) {
         status: 'incomplete',
         priority,
         due_date: dueDate || null,
+        tags,
       })
       .select()
       .single();
@@ -158,7 +160,7 @@ export function useTasks(options: UseTasksOptions = {}) {
     return { data, error: null };
   };
 
-  const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'due_date'>>) => {
+  const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'due_date' | 'tags'>>) => {
     const { data, error } = await supabase
       .from('tasks')
       .update(updates)
