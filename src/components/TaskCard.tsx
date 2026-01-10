@@ -1,24 +1,37 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Circle, Trash2, Edit2, X, Save } from 'lucide-react';
-import { Task } from '@/hooks/useTasks';
+import { Check, Trash2, Edit2, X, Save, Calendar, AlertTriangle } from 'lucide-react';
+import { Task, Priority } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { format, isPast, isToday } from 'date-fns';
 
 interface TaskCardProps {
   task: Task;
   onToggle: (id: string) => Promise<unknown>;
-  onUpdate: (id: string, updates: { title?: string; description?: string }) => Promise<unknown>;
+  onUpdate: (id: string, updates: { title?: string; description?: string; priority?: Priority; due_date?: string | null }) => Promise<unknown>;
   onDelete: (id: string) => Promise<unknown>;
 }
+
+const priorityConfig: Record<Priority, { label: string; className: string }> = {
+  low: { label: 'Low', className: 'bg-muted text-muted-foreground hover:bg-muted' },
+  medium: { label: 'Medium', className: 'bg-warning/20 text-warning-foreground hover:bg-warning/30' },
+  high: { label: 'High', className: 'bg-destructive/20 text-destructive hover:bg-destructive/30' },
+};
 
 export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || '');
+  const [editPriority, setEditPriority] = useState<Priority>(task.priority);
+  const [editDueDate, setEditDueDate] = useState(task.due_date || '');
   const [isLoading, setIsLoading] = useState(false);
+
+  const isOverdue = task.due_date && task.status !== 'completed' && isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date));
+  const isDueToday = task.due_date && isToday(new Date(task.due_date));
 
   const handleToggle = async () => {
     setIsLoading(true);
@@ -32,6 +45,8 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
     await onUpdate(task.id, {
       title: editTitle.trim(),
       description: editDescription.trim() || undefined,
+      priority: editPriority,
+      due_date: editDueDate || null,
     });
     setIsEditing(false);
     setIsLoading(false);
@@ -46,6 +61,8 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
   const handleCancel = () => {
     setEditTitle(task.title);
     setEditDescription(task.description || '');
+    setEditPriority(task.priority);
+    setEditDueDate(task.due_date || '');
     setIsEditing(false);
   };
 
@@ -56,9 +73,10 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       className={cn(
-        'group relative p-4 rounded-xl bg-card border border-border transition-all duration-200',
-        'hover:shadow-md hover:border-accent/30',
-        task.status === 'completed' && 'opacity-60'
+        'group relative p-4 rounded-xl bg-card border transition-all duration-200',
+        'hover:shadow-md',
+        task.status === 'completed' && 'opacity-60',
+        isOverdue ? 'border-destructive/50 bg-destructive/5' : 'border-border hover:border-accent/30'
       )}
     >
       {isEditing ? (
@@ -78,6 +96,31 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
             rows={2}
             disabled={isLoading}
           />
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">Priority:</label>
+              <select
+                value={editPriority}
+                onChange={(e) => setEditPriority(e.target.value as Priority)}
+                disabled={isLoading}
+                className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">Due:</label>
+              <input
+                type="date"
+                value={editDueDate}
+                onChange={(e) => setEditDueDate(e.target.value)}
+                disabled={isLoading}
+                className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+              />
+            </div>
+          </div>
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -118,26 +161,45 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
           </button>
           
           <div className="flex-1 min-w-0">
-            <h3
-              className={cn(
-                'font-medium text-foreground transition-all',
-                task.status === 'completed' && 'line-through text-muted-foreground'
-              )}
-            >
-              {task.title}
-            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3
+                className={cn(
+                  'font-medium text-foreground transition-all',
+                  task.status === 'completed' && 'line-through text-muted-foreground'
+                )}
+              >
+                {task.title}
+              </h3>
+              <Badge variant="outline" className={cn('text-xs', priorityConfig[task.priority].className)}>
+                {priorityConfig[task.priority].label}
+              </Badge>
+            </div>
             {task.description && (
               <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                 {task.description}
               </p>
             )}
-            <p className="mt-2 text-xs text-muted-foreground/60">
-              {new Date(task.created_at).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </p>
+            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground/60">
+              <span>
+                {new Date(task.created_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>
+              {task.due_date && (
+                <span className={cn(
+                  'flex items-center gap-1',
+                  isOverdue && 'text-destructive font-medium',
+                  isDueToday && 'text-warning font-medium'
+                )}>
+                  {isOverdue && <AlertTriangle className="w-3 h-3" />}
+                  <Calendar className="w-3 h-3" />
+                  {isOverdue ? 'Overdue: ' : isDueToday ? 'Due today: ' : 'Due: '}
+                  {format(new Date(task.due_date), 'MMM d, yyyy')}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

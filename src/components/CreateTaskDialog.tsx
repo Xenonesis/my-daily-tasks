@@ -1,9 +1,14 @@
 import { useState } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { Priority } from '@/hooks/useTasks';
 import {
   Dialog,
   DialogContent,
@@ -15,13 +20,21 @@ import {
 } from '@/components/ui/dialog';
 
 interface CreateTaskDialogProps {
-  onCreate: (title: string, description?: string) => Promise<{ error: Error | null }>;
+  onCreate: (title: string, description?: string, priority?: Priority, dueDate?: string) => Promise<{ error: Error | null }>;
 }
+
+const priorityOptions: { value: Priority; label: string; description: string }[] = [
+  { value: 'low', label: 'Low', description: 'Can wait' },
+  { value: 'medium', label: 'Medium', description: 'Normal priority' },
+  { value: 'high', label: 'High', description: 'Urgent' },
+];
 
 export function CreateTaskDialog({ onCreate }: CreateTaskDialogProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState<Priority>('medium');
+  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,12 +42,19 @@ export function CreateTaskDialog({ onCreate }: CreateTaskDialogProps) {
     if (!title.trim()) return;
 
     setIsLoading(true);
-    const { error } = await onCreate(title, description);
+    const { error } = await onCreate(
+      title,
+      description,
+      priority,
+      dueDate ? format(dueDate, 'yyyy-MM-dd') : undefined
+    );
     setIsLoading(false);
 
     if (!error) {
       setTitle('');
       setDescription('');
+      setPriority('medium');
+      setDueDate(undefined);
       setOpen(false);
     }
   };
@@ -77,6 +97,70 @@ export function CreateTaskDialog({ onCreate }: CreateTaskDialogProps) {
                 disabled={isLoading}
                 rows={3}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Priority</Label>
+              <div className="flex gap-2">
+                {priorityOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setPriority(option.value)}
+                    disabled={isLoading}
+                    className={cn(
+                      'flex-1 px-3 py-2 text-sm rounded-lg border transition-all',
+                      priority === option.value
+                        ? option.value === 'high'
+                          ? 'bg-destructive/20 border-destructive text-destructive'
+                          : option.value === 'medium'
+                          ? 'bg-warning/20 border-warning text-warning-foreground'
+                          : 'bg-muted border-muted-foreground/30 text-muted-foreground'
+                        : 'bg-card border-border hover:border-accent/50'
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Due Date (optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !dueDate && 'text-muted-foreground'
+                    )}
+                    disabled={isLoading}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, 'PPP') : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              {dueDate && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDueDate(undefined)}
+                  className="text-xs text-muted-foreground"
+                >
+                  Clear date
+                </Button>
+              )}
             </div>
           </div>
           <DialogFooter>
