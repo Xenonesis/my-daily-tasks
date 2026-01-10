@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Priority } from '@/hooks/useTasks';
+import { TagInput } from '@/components/TagInput';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 
 interface CreateTaskDialogProps {
-  onCreate: (title: string, description?: string, priority?: Priority, dueDate?: string) => Promise<{ error: Error | null }>;
+  onCreate: (title: string, description?: string, priority?: Priority, dueDate?: string, tags?: string[]) => Promise<{ error: Error | null }>;
 }
 
 const priorityOptions: { value: Priority; label: string; description: string }[] = [
@@ -35,6 +36,7 @@ export function CreateTaskDialog({ onCreate }: CreateTaskDialogProps) {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<Priority>('medium');
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
+  const [tags, setTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +48,8 @@ export function CreateTaskDialog({ onCreate }: CreateTaskDialogProps) {
       title,
       description,
       priority,
-      dueDate ? format(dueDate, 'yyyy-MM-dd') : undefined
+      dueDate ? format(dueDate, 'yyyy-MM-dd') : undefined,
+      tags
     );
     setIsLoading(false);
 
@@ -55,6 +58,7 @@ export function CreateTaskDialog({ onCreate }: CreateTaskDialogProps) {
       setDescription('');
       setPriority('medium');
       setDueDate(undefined);
+      setTags([]);
       setOpen(false);
     }
   };
@@ -161,6 +165,10 @@ export function CreateTaskDialog({ onCreate }: CreateTaskDialogProps) {
                   Clear date
                 </Button>
               )}
+            </div>
+            <div className="space-y-2">
+              <Label>Tags (optional)</Label>
+              <TagInput tags={tags} onChange={setTags} disabled={isLoading} />
             </div>
           </div>
           <DialogFooter>

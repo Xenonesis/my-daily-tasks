@@ -8,11 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { format, isPast, isToday } from 'date-fns';
+import { TagInput, TagDisplay } from '@/components/TagInput';
 
 interface TaskCardProps {
   task: Task;
   onToggle: (id: string) => Promise<unknown>;
-  onUpdate: (id: string, updates: { title?: string; description?: string; priority?: Priority; due_date?: string | null }) => Promise<unknown>;
+  onUpdate: (id: string, updates: { title?: string; description?: string; priority?: Priority; due_date?: string | null; tags?: string[] }) => Promise<unknown>;
   onDelete: (id: string) => Promise<unknown>;
 }
 
@@ -28,6 +29,7 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
   const [editDescription, setEditDescription] = useState(task.description || '');
   const [editPriority, setEditPriority] = useState<Priority>(task.priority);
   const [editDueDate, setEditDueDate] = useState(task.due_date || '');
+  const [editTags, setEditTags] = useState<string[]>(task.tags || []);
   const [isLoading, setIsLoading] = useState(false);
 
   const isOverdue = task.due_date && task.status !== 'completed' && isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date));
@@ -47,6 +49,7 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
       description: editDescription.trim() || undefined,
       priority: editPriority,
       due_date: editDueDate || null,
+      tags: editTags,
     });
     setIsEditing(false);
     setIsLoading(false);
@@ -63,6 +66,7 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
     setEditDescription(task.description || '');
     setEditPriority(task.priority);
     setEditDueDate(task.due_date || '');
+    setEditTags(task.tags || []);
     setIsEditing(false);
   };
 
@@ -121,6 +125,10 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
               />
             </div>
           </div>
+          <div className="space-y-1">
+            <label className="text-sm text-muted-foreground">Tags:</label>
+            <TagInput tags={editTags} onChange={setEditTags} disabled={isLoading} />
+          </div>
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -178,6 +186,11 @@ export function TaskCard({ task, onToggle, onUpdate, onDelete }: TaskCardProps) 
               <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                 {task.description}
               </p>
+            )}
+            {task.tags && task.tags.length > 0 && (
+              <div className="mt-2">
+                <TagDisplay tags={task.tags} />
+              </div>
             )}
             <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground/60">
               <span>
