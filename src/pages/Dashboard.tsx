@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckSquare, LogOut, Loader2, Inbox } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTasks } from '@/hooks/useTasks';
+import { useTasks, Priority } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { TaskCard } from '@/components/TaskCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -14,11 +14,13 @@ export default function Dashboard() {
   const { user, signOut } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'incomplete'>('all');
+  const [priorityFilter, setPriorityFilter] = useState<'all' | Priority>('all');
   const [page, setPage] = useState(1);
   
   const { tasks, loading, totalCount, totalPages, createTask, updateTask, toggleTask, deleteTask } = useTasks({
     searchQuery,
     statusFilter,
+    priorityFilter,
     page,
     limit: 20,
   });
@@ -97,6 +99,11 @@ export default function Dashboard() {
             statusFilter={statusFilter}
             onStatusFilterChange={(status) => {
               setStatusFilter(status);
+              setPage(1);
+            }}
+            priorityFilter={priorityFilter}
+            onPriorityFilterChange={(priority) => {
+              setPriorityFilter(priority);
               setPage(1);
             }}
           />

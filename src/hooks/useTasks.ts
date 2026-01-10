@@ -3,11 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+export type Priority = 'low' | 'medium' | 'high';
+
 export interface Task {
   id: string;
   title: string;
   description: string | null;
   status: 'completed' | 'incomplete';
+  priority: Priority;
+  due_date: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -16,12 +20,13 @@ export interface Task {
 interface UseTasksOptions {
   searchQuery?: string;
   statusFilter?: 'all' | 'completed' | 'incomplete';
+  priorityFilter?: 'all' | Priority;
   page?: number;
   limit?: number;
 }
 
 export function useTasks(options: UseTasksOptions = {}) {
-  const { searchQuery = '', statusFilter = 'all', page = 1, limit = 20 } = options;
+  const { searchQuery = '', statusFilter = 'all', priorityFilter = 'all', page = 1, limit = 20 } = options;
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -48,6 +53,11 @@ export function useTasks(options: UseTasksOptions = {}) {
       query = query.eq('status', statusFilter);
     }
 
+    // Apply priority filter
+    if (priorityFilter !== 'all') {
+      query = query.eq('priority', priorityFilter);
+    }
+
     // Apply search filter
     if (searchQuery.trim()) {
       query = query.ilike('title', `%${searchQuery.trim()}%`);
@@ -72,13 +82,13 @@ export function useTasks(options: UseTasksOptions = {}) {
     }
     
     setLoading(false);
-  }, [user, searchQuery, statusFilter, page, limit, toast]);
+  }, [user, searchQuery, statusFilter, priorityFilter, page, limit, toast]);
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
 
-  const createTask = async (title: string, description?: string) => {
+  const createTask = async (title: string, description?: string, priority: Priority = 'medium', dueDate?: string) => {
     if (!user) return { error: new Error('Not authenticated') };
 
     const { data, error } = await supabase
@@ -88,6 +98,8 @@ export function useTasks(options: UseTasksOptions = {}) {
         description: description?.trim() || null,
         user_id: user.id,
         status: 'incomplete',
+        priority,
+        due_date: dueDate || null,
       })
       .select()
       .single();
@@ -110,7 +122,7 @@ export function useTasks(options: UseTasksOptions = {}) {
     return { data, error: null };
   };
 
-  const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'status'>>) => {
+  const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'due_date'>>) => {
     const { data, error } = await supabase
       .from('tasks')
       .update(updates)
