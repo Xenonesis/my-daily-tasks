@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'incomplete'>('all');
   const [priorityFilter, setPriorityFilter] = useState<'all' | Priority>('all');
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [page, setPage] = useState(1);
@@ -23,6 +24,7 @@ export default function Dashboard() {
     searchQuery,
     statusFilter,
     priorityFilter,
+    tagFilter,
     sortField,
     sortDirection,
     page,
@@ -108,6 +110,11 @@ export default function Dashboard() {
             priorityFilter={priorityFilter}
             onPriorityFilterChange={(priority) => {
               setPriorityFilter(priority);
+              setPage(1);
+            }}
+            tagFilter={tagFilter}
+            onTagFilterChange={(tags) => {
+              setTagFilter(tags);
               setPage(1);
             }}
             sortField={sortField}

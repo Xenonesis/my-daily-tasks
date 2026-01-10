@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { TagInput } from '@/components/TagInput';
 
 interface TaskFiltersProps {
   searchQuery: string;
@@ -17,6 +18,8 @@ interface TaskFiltersProps {
   onStatusFilterChange: (status: 'all' | 'completed' | 'incomplete') => void;
   priorityFilter: 'all' | Priority;
   onPriorityFilterChange: (priority: 'all' | Priority) => void;
+  tagFilter: string[];
+  onTagFilterChange: (tags: string[]) => void;
   sortField: SortField;
   sortDirection: SortDirection;
   onSortChange: (field: SortField, direction: SortDirection) => void;
@@ -48,6 +51,8 @@ export function TaskFilters({
   onStatusFilterChange,
   priorityFilter,
   onPriorityFilterChange,
+  tagFilter,
+  onTagFilterChange,
   sortField,
   sortDirection,
   onSortChange,
@@ -159,6 +164,20 @@ export function TaskFilters({
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Tag Filter */}
+      <div className="flex items-center gap-2">
+        <Filter className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">Filter by tags:</span>
+        <div className="flex-1 max-w-md">
+          <TagInput
+            tags={tagFilter}
+            onChange={onTagFilterChange}
+            placeholder="Add tags to filter tasks..."
+            className="mb-0"
+          />
         </div>
       </div>
     </div>

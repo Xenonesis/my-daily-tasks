@@ -25,6 +25,7 @@ interface UseTasksOptions {
   searchQuery?: string;
   statusFilter?: 'all' | 'completed' | 'incomplete';
   priorityFilter?: 'all' | Priority;
+  tagFilter?: string[];
   sortField?: SortField;
   sortDirection?: SortDirection;
   page?: number;
@@ -36,6 +37,7 @@ export function useTasks(options: UseTasksOptions = {}) {
     searchQuery = '', 
     statusFilter = 'all', 
     priorityFilter = 'all', 
+    tagFilter = [],
     sortField = 'created_at',
     sortDirection = 'desc',
     page = 1, 
@@ -113,13 +115,20 @@ export function useTasks(options: UseTasksOptions = {}) {
           return sortDirection === 'asc' ? orderB - orderA : orderA - orderB;
         });
       }
+
+      // Client-side tag filtering
+      if (tagFilter.length > 0) {
+        sortedData = sortedData.filter(task => 
+          task.tags && task.tags.some(tag => tagFilter.includes(tag))
+        );
+      }
       
       setTasks(sortedData);
       setTotalCount(count || 0);
     }
     
     setLoading(false);
-  }, [user, searchQuery, statusFilter, priorityFilter, sortField, sortDirection, page, limit, toast]);
+  }, [user, searchQuery, statusFilter, priorityFilter, tagFilter, sortField, sortDirection, page, limit, toast]);
 
   useEffect(() => {
     fetchTasks();
